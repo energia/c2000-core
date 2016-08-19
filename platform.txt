@@ -1,0 +1,99 @@
+
+# Energia C2000 Core and platform.
+# ------------------------------
+#
+# For more info:
+# https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
+
+name=Energia C2000 boards
+version=1.0.0
+
+# C2000 compile variables
+# ----------------------
+
+compiler.warning_flags=
+compiler.warning_flags.none=
+compiler.warning_flags.default=
+compiler.warning_flags.more=
+compiler.warning_flags.all=-Wextra
+
+compiler.path={runtime.tools.cl2000.path}/bin/
+compiler.c.cmd=cl2000
+compiler.c.flags=-g -v28 -ml -mt --gcc {compiler.warning_flags} -std=gnu11 --param max-inline-insns-single=500 -Dprintf=iprintf
+compiler.cpp.elf.cmd=cl2000
+compiler.c.elf.flags=
+compiler.S.cmd=arm-none-eabi-gcc
+compiler.S.flags=-g -x -v28 --asm_extension=S -ml -mt -gcc
+compiler.cpp.cmd=cl2000
+compiler.cpp.flags=-g -v28 -ml -mt --gcc {compiler.warning_flags} -std=gnu++11 -fno-threadsafe-statics --param max-inline-insns-single=500 Dprintf=iprintf
+compiler.ar.cmd=ar2000
+compiler.ar.flags=r
+compiler.objcopy.cmd=avr-none-objcopy
+compiler.objcopy.eep.flags=-O -R ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+compiler.elf2hex.flags=-O ihex
+compiler.elf2hex.cmd=avr-none-objcopy
+compiler.ldflags= 
+compiler.size.cmd=arm-none-eabi-size
+compiler.define=--define=ENERGIA=
+
+# this can be overriden in boards.txt
+build.extra_flags=-mabi=aapcs
+
+# These can be overridden in platform.local.txt
+compiler.c.extra_flags= --diag_warning=225 --gen_func_subsections=on --display_error_number _diag_wrap=off --preproc_with_compile {compiler.driverlib.c.flags}
+compiler.c.elf.extra_flags=
+compiler.cpp.extra_flags=-diag_warning=225 --gen_func_subsections=on --display_error_number --diag_wrap=off --preproc_with_compile "-I{build.variant.path}"
+compiler.S.extra_flags=--diag_warning=225 --gen_func_subsections=on --display_error_number 
+compiler.ar.extra_flags=
+compiler.elf2hex.extra_flags=
+
+compiler.driverlib.c.flags="-I{build.system.path}/driverlib" "-I{build.system.path}/inc" "-I{build.system.path}"
+
+compiler.libsam.c.flags="-I{build.system.path}/libsam" "-I{build.system.path}/CMSIS/CMSIS/Include/" "-I{build.system.path}/CMSIS/Device/ATMEL/"
+
+# USB Flags
+# ---------
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} -DUSBCON '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+
+# Default usb manufacturer will be replaced at compile time using
+# numeric vendor ID if available or by board's specific value.
+build.usb_manufacturer="Unknown"
+
+
+# SAM3 compile patterns
+# ---------------------
+
+## Compile c files
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.c.extra_flags} {build.extra_flags} {compiler.libsam.c.flags} {includes} "\{source_file}\" --output_file="{object_file}"
+
+## Compile c++ files
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "\{source_file}\" --output_file="{object_file}"
+
+## Compile S files
+recipe.S.o.pattern="{compiler.path}{compiler.S.cmd}" {compiler.S.flags} -mcpu={build.mcu} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.S.extra_flags} {build.extra_flags} {compiler.libsam.c.flags} {includes} "/{source_file}/" --output_file"{object_file}"
+
+## Create archives
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
+
+## Combine gc-sections, archives, and objects
+recipe.c.combine.pattern="{compiler.path}{compiler.cpp.elf.cmd}" {compiler.c.elf.flags} "-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.hex" "-L{build.path}" --cref --entry=ResetISR --unresolved-symbols=report-all --warn-common --warn-section-align {compiler.ldflags} --start-group {object_files} "{build.path}/{archive_file}" --end-group -l {build.rts}
+
+## Create output (.bin file)
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+
+## Save hex
+recipe.output.tmp_file={build.project_name}.hex
+recipe.output.save_file={build.project_name}.{build.variant}.hex
+
+## Compute size
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=\.text\s+([0-9]+).*
+
+# TI's DSLite
+tools.dslite.upload.params.verbose=
+tools.dslite.upload.params.quiet=
+tools.dslite.path={runtime.tools.dslite.path}
+tools.dslite.config.path={path}
+tools.dslite.cmd.path={path}/DebugServer/bin/DSLite
+tools.dslite.upload.pattern={cmd.path} {upload.verbose} load "{config.path}/{build.variant}.ccxml" "{build.path}/{build.project_name}.elf"
+
