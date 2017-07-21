@@ -17,17 +17,17 @@ compiler.warning_flags.default=--display_error_number --diag_suppress=10063 --di
 compiler.warning_flags.more=--display_error_number --diag_warning=225 --diag_wrap=off
 compiler.warning_flags.all=--display_error_number --verbose_diagnostics --diag_warning=225 --diag_wrap=off
 
-compiler.path={runtime.tools.ti-cgt-c2000.path}\bin\
+compiler.path={runtime.tools.ti-cgt-c2000.path}/bin/
 compiler.c.cmd=cl2000
-compiler.c.flags=-g -v28 -ml -mt --gcc -Ooff --preproc_with_compile --gen_func_subsections=on {compiler.warning_flags.default}
+compiler.c.flags=-g -v28 -ml -mt -O2 --preproc_dependency={object_file}.d --preproc_with_compile --gen_func_subsections=on {compiler.warning_flags.default}
 compiler.cpp.elf.cmd=cl2000
-compiler.c.elf.flags=-g -v28 -ml -mt --gcc -Ooff --preproc_with_compile --gen_func_subsections=on --stack_size=0x300 --reread_libs --entry_point=code_start --rom_model
+compiler.c.elf.flags=-v28 -ml -mt -g --define={build.mcu} --diag_warning=225 --diag_wrap=off --display_error_number -z
 compiler.S.cmd=cl2000
-compiler.S.flags=-g -v28 --asm_extension=S -ml -mt -gcc --preproc_with_compile --gen_func_subsections=on
+compiler.S.flags=-g -v28 --asm_extension=S -ml -mt  --preproc_dependency={object_file}.d --preproc_with_compile --gen_func_subsections=on
 compiler.cpp.cmd=cl2000
-compiler.cpp.flags=-g -v28 -ml -mt --gcc -Ooff --preproc_with_compile --gen_func_subsections=on {compiler.warning_flags.default}
+compiler.cpp.flags=-g -v28 -ml -mt -O2  --preproc_dependency={object_file}.d --preproc_with_compile --gen_func_subsections=on {compiler.warning_flags.default}
 compiler.ar.cmd=ar2000
-compiler.ar.flags=
+compiler.ar.flags=r
 compiler.objcopy.cmd=
 compiler.objcopy.eep.flags=
 compiler.elf2hex.flags=
@@ -40,10 +40,10 @@ compiler.define=
 build.extra_flags=
 
 # These can be overridden in platform.local.txt
-compiler.c.extra_flags= "-I{runtime.tools.ti-cgt-c2000.path}\include\"
-compiler.c.elf.extra_flags=
-compiler.cpp.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}\include\"
-compiler.S.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}\include\"
+compiler.c.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include" -I {build.core.path}/F2837xS_common/include
+compiler.c.elf.extra_flags=-i/opt/energia/ti-cgt-c2000_17.6.0.STS/lib -i{build.path}/core/ --reread_libs --diag_wrap=off --display_error_number --reread_libs --stack_size=0x300 --rom_model --entry_point=code_start
+compiler.cpp.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include"
+compiler.S.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include"
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 
@@ -60,22 +60,23 @@ build.usb_manufacturer="Unknown"
 # ---------------------
 
 ## Compile c files
-recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file="{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file={object_file}
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file="{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file={object_file}
 
 ## Compile S files
-recipe.S.o.pattern="{compiler.path}{compiler.S.cmd}" {compiler.S.flags} -mcpu={build.mcu} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file"{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.S.cmd}" {compiler.S.flags} --define=F_CPU={build.f_cpu} --define=ARDUINO={runtime.ide.version} --define=ENERGIA={runtime.ide.version} --define={build.mcu} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" --output_file={object_file}
 
 ## Create archives
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-recipe.c.combine.pattern="{compiler.path}{compiler.cpp.elf.cmd}" {compiler.c.elf.flags} "-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.hex" "-L{build.path}" --cref --entry=ResetISR --unresolved-symbols=report-all --warn-common --warn-section-align {compiler.ldflags} --start-group {object_files} "{build.path}/{archive_file}" --end-group -l {build.rts}
+
+recipe.c.combine.pattern="{compiler.path}{compiler.cpp.elf.cmd}" {compiler.c.elf.flags} -o "{build.path}/{build.project_name}.elf" -i"{build.path}" {compiler.c.elf.extra_flags} {object_files} {build.ldscript} -l{build.rts} -lcore.a -llibc.a
 
 ## Create output (.bin file)
-recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+#recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 
 ## Save hex
 recipe.output.tmp_file={build.project_name}.hex
@@ -90,7 +91,7 @@ preproc.includes.flags=
 preproc.macros.flags=
 
 recipe.preproc.includes="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.includes.flags} --define={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DENERGIA={runtime.ide.version} -DENERGIA_{build.board} -DENERGIA_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"
-recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.macros.flags} --define={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DENERGIA={runtime.ide.version} -DENERGIA_{build.board} -DENERGIA_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{preprocessed_file_path}"
+recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.macros.flags} --define={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DENERGIA={runtime.ide.version} -DENERGIA_{build.board} -DENERGIA_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"  --output_file "{preprocessed_file_path}"
 
 
 # TI's DSLite
