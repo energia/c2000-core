@@ -1,10 +1,14 @@
 ##############################################################
-lptms320f28027.name=LaunchPad (C2000) w/ TMS320F28027 (60MHz)
+lptms320f28027.name=LAUNCHXL-F28027 LaunchPad w/ TMS320F28027 (60MHz)
 lptms320f28027.build.mcu=TMS320F28027
 lptms320f28027.build.f_cpu=60000000L
 lptms320f28027.build.core=c2000
-lptms320f28027.build.variant=launchpad_f28027
+lptms320f28027.build.variant=LAUNCHXL_F28027
 lptms320f28027.build.rts=rts2800_ml.lib
 lptms320f28027.build.ldscript={build.core.path}/f2802x_common/cmd/F28027.cmd {build.core.path}/f2802x_headers/cmd/F2802x_Headers_nonBIOS.cmd
 lptms320f28027.build.board=launchpad_f28027
+lptms320f28027.upload.tool=dslite
+lptms320f28027.upload.protocol=dslite
+lptms320f28027.upload.maximum_size=65536
+lptms320f28027.upload.maximum_data_size=12288
 ##############################################################

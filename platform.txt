@@ -93,12 +93,15 @@ preproc.macros.flags=
 recipe.preproc.includes="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.includes.flags} --define={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DENERGIA={runtime.ide.version} -DENERGIA_{build.board} -DENERGIA_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"
 recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.macros.flags} --define={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DENERGIA={runtime.ide.version} -DENERGIA_{build.board} -DENERGIA_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"  --output_file "{preprocessed_file_path}"
 
-
 # TI's DSLite
 tools.dslite.upload.params.verbose=
 tools.dslite.upload.params.quiet=
 tools.dslite.path={runtime.tools.dslite.path}
 tools.dslite.config.path={path}
 tools.dslite.cmd.path={path}/DebugServer/bin/DSLite
-tools.dslite.upload.pattern={cmd.path} {upload.verbose} load "{config.path}/{build.variant}.ccxml" "{build.path}/{build.project_name}.elf"
+tools.dslite.upload.pattern={cmd.path} {upload.verbose} load -c "{config.path}/{build.variant}.ccxml" -f "{build.path}/{build.project_name}.elf"
 
+tools.dslite.program.params.verbose=
+tools.dslite.program.params.quiet=
+tools.dslite.program.params.noverify=
+tools.dslite.program.pattern={cmd.path} {program.verbose} load -c "{config.path}/{build.variant}.ccxml" -f "{build.path}/{build.project_name}.elf"
