@@ -236,14 +236,4 @@ long map(long, long, long, long, long);
 
 #include "pins_energia.h"
 
-#ifdef TMS320F28027
-#include "../../variants/launchpad_f28027/pins_energia.h"
-#elif defined(TMS320F28069)
-#include "../../variants/launchpad_f28069/pins_energia.h"
-#elif defined(TMS320F28377S)
-#include "../../variants/launchpad_f28377S/pins_energia.h"
-#else
-#warning Device not supported!
-#endif
-
 #endif //#ifndef Energia_h
