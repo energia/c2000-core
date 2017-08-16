@@ -41,7 +41,7 @@ build.extra_flags=
 
 # These can be overridden in platform.local.txt
 compiler.c.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include" -I {build.core.path}/F2837xS_common/include
-compiler.c.elf.extra_flags=-i/opt/energia/ti-cgt-c2000_17.6.0.STS/lib -i{build.path}/core/ --reread_libs --diag_wrap=off --display_error_number --reread_libs --stack_size=0x300 --rom_model --entry_point=code_start
+compiler.c.elf.extra_flags=-i{runtime.tools.ti-cgt-c2000.path}/lib -i{build.path}/core/ --reread_libs --diag_wrap=off --display_error_number --reread_libs --stack_size=0x300 --rom_model --entry_point=code_start
 compiler.cpp.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include"
 compiler.S.extra_flags="-I{runtime.tools.ti-cgt-c2000.path}/include"
 compiler.ar.extra_flags=
